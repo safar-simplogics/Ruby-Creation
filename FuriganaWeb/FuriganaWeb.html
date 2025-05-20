@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ruby Annotation Editor</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+
+        ruby {
+            cursor: pointer;
+            padding: 2px;
+        }
+
+            ruby:hover {
+                background-color: #f0f0f0;
+            }
+
+        rt {
+            font-size: 0.6em;
+            color: gray;
+        }
+
+        #editor {
+            margin-top: 1em;
+            font-size: 1.2em;
+            line-height: 2;
+            border: 1px solid #ddd;
+            padding: 10px;
+            min-height: 100px;
+        }
+
+        #input-area {
+            margin-top: 1em;
+        }
+
+        .word-wrapper {
+            display: inline-block;
+            margin-right: 0.25em;
+        }
+
+        .controls {
+            margin: 10px 0;
+        }
+
+        .status {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Ruby-Annotated Text Editor</h2>
+    <div id="input-area">
+        <textarea id="inputText" rows="3" cols="40" placeholder="Enter your text here">唐揚げ弁当を作る</textarea><br>
+        <div class="controls">
+            <button id="parseButton">Auto Split</button>
+            <button id="manualButton">Manual Split</button>
+            <span id="status" class="status"></span>
+        </div>
+    </div>
+    <div id="editor"></div>
+
+    <script>
+        let data = [];
+        const editor = document.getElementById("editor");
+        const statusEl = document.getElementById("status");
+        const inputText = document.getElementById("inputText");
+        const parseButton = document.getElementById("parseButton");
+        const manualButton = document.getElementById("manualButton");
+
+
+        function render() {
+            editor.innerHTML = "";
+            data.forEach((item, index) => {
+                const wrapper = document.createElement("span");
+                wrapper.className = "word-wrapper";
+
+                const hasKanji = /[\u4e00-\u9faf]/.test(item.word);
+
+                if (hasKanji) {
+                    const ruby = document.createElement("ruby");
+                    const rb = document.createElement("rb");
+                    rb.textContent = item.word;
+                    ruby.appendChild(rb);
+
+                    const rt = document.createElement("rt");
+                    rt.textContent = item.furigana || "";
+                    ruby.appendChild(rt);
+
+                    ruby.addEventListener("click", () => editFurigana(index));
+                    wrapper.appendChild(ruby);
+                } else {
+                    wrapper.textContent = item.word;
+                }
+
+                editor.appendChild(wrapper);
+            });
+        }
+
+        function editFurigana(index) {
+            const item = data[index];
+            const hasKanji = /[\u4e00-\u9faf]/.test(item.word);
+            if (hasKanji) {
+                const newFurigana = prompt(`Enter furigana for "${item.word}":`, item.furigana);
+                if (newFurigana !== null) {
+                    data[index].furigana = newFurigana;
+                    render();
+                }
+            }
+        }
+
+        async function autoSplit() {
+            const text = inputText.value.trim();
+            if (!text) {
+                statusEl.textContent = "Please enter text.";
+                return;
+            }
+
+            statusEl.textContent = "Sending to server...";
+
+            try {
+                const response = await fetch("http://localhost:5256/api/furigana", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text }),
+                    mode: "cors"
+
+                });
+                if (!response.ok) throw new Error("Server error");
+
+                const result = await response.json();
+                data = result.data;
+                statusEl.textContent = `Split into ${data.length} tokens.`;
+                render();
+            } catch (err) {
+                console.error("API error:", err);
+                statusEl.textContent = "Failed to retrieve furigana.";
+            }
+        }
+
+        async function manualSplit() {
+            const text = inputText.value.trim();
+            if (!text) {
+                statusEl.textContent = "Please enter text.";
+                return;
+            }
+
+            statusEl.textContent = "Sending to server for manual split...";
+
+            try {
+                const response = await fetch("http://localhost:5256/api/furigana/single", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text }),
+                    mode: "cors"
+                });
+
+                if (!response.ok) throw new Error("Server error");
+
+                const result = await response.json();
+
+                // Directly use the result data
+                data = result.data.map(token => ({
+                    word: token.word,
+                    furigana: /[\u4e00-\u9faf]/.test(token.word) ? (token.furigana || "") : ""
+                }));
+
+                statusEl.textContent = `Manually split into ${data.length} characters.`;
+                render();
+            } catch (err) {
+                console.error("API error:", err);
+                statusEl.textContent = "Failed to retrieve furigana for manual split.";
+            }
+        }
+
+
+        parseButton.addEventListener("click", autoSplit);
+        manualButton.addEventListener("click", manualSplit);
+    </script>
+</body>
+</html>
