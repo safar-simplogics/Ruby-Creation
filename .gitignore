@@ -1,0 +1,52 @@
+# .NET build artifacts
+FuriganaApi/bin/
+FuriganaApi/obj/
+FuriganaApi/out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code settings
+.vscode/
+
+# Visual Studio settings
+.vs/
+
+# Mac build files
+*.DS_Store
+
+# Rider settings
+.idea/
+
+# Logs
+*.log
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# NuGet packages
+FuriganaApi/*.nupkg
+FuriganaApi/packages/
+FuriganaApi/.nuget/
+
+# Publish output
+FuriganaApi/publish/
+*.Publish.xml
+
+# Test results
+TestResults/
+*.trx
+
+# Others
+*.swp
+*.bak
+*.tmp
+
+# dotenv environment files
+.env
+.env.*
