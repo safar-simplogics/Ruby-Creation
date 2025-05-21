@@ -79,23 +79,23 @@
                 const wrapper = document.createElement("span");
                 wrapper.className = "word-wrapper";
 
-                const hasKanji = /[\u4e00-\u9faf]/.test(item.word);
+                //const hasKanji = /[\u4e00-\u9faf]/.test(item.word);
 
-                if (hasKanji) {
-                    const ruby = document.createElement("ruby");
-                    const rb = document.createElement("rb");
-                    rb.textContent = item.word;
-                    ruby.appendChild(rb);
+                //if (hasKanji) {
+                const ruby = document.createElement("ruby");
+                const rb = document.createElement("rb");
+                rb.textContent = item.word;
+                ruby.appendChild(rb);
 
-                    const rt = document.createElement("rt");
-                    rt.textContent = item.furigana || "";
-                    ruby.appendChild(rt);
+                const rt = document.createElement("rt");
+                rt.textContent = item.furigana || "";
+                ruby.appendChild(rt);
 
-                    ruby.addEventListener("click", () => editFurigana(index));
-                    wrapper.appendChild(ruby);
-                } else {
-                    wrapper.textContent = item.word;
-                }
+                ruby.addEventListener("click", () => editFurigana(index));
+                wrapper.appendChild(ruby);
+                //} else {
+                //    wrapper.textContent = item.word;
+                //}
 
                 editor.appendChild(wrapper);
             });
@@ -103,13 +103,13 @@
 
         function editFurigana(index) {
             const item = data[index];
-            const hasKanji = /[\u4e00-\u9faf]/.test(item.word);
-            if (hasKanji) {
-                const newFurigana = prompt(`Enter furigana for "${item.word}":`, item.furigana);
-                if (newFurigana !== null) {
-                    data[index].furigana = newFurigana;
-                    render();
-                }
+            //const hasKanji = /[\u4e00-\u9faf]/.test(item.word);
+            //if (hasKanji) {
+            const newFurigana = prompt(`Enter furigana for "${item.word}":`, item.furigana);
+            if (newFurigana !== null) {
+                data[index].furigana = newFurigana;
+                render();
+                //}
             }
         }
 
