@@ -66,6 +66,7 @@
 
     <script>
         let data = [];
+        let editingIndex = null; 
         const editor = document.getElementById("editor");
         const statusEl = document.getElementById("status");
         const inputText = document.getElementById("inputText");
@@ -79,38 +80,55 @@
                 const wrapper = document.createElement("span");
                 wrapper.className = "word-wrapper";
 
-                //const hasKanji = /[\u4e00-\u9faf]/.test(item.word);
-
-                //if (hasKanji) {
                 const ruby = document.createElement("ruby");
                 const rb = document.createElement("rb");
                 rb.textContent = item.word;
                 ruby.appendChild(rb);
 
                 const rt = document.createElement("rt");
-                rt.textContent = item.furigana || "";
+                if (editingIndex === index) {
+                    // Place input inside <rt> so it appears above the character
+                    const input = document.createElement("input");
+                    input.type = "text";
+                    input.value = item.furigana || "";
+                    input.style.fontSize = "0.6em";
+                    input.style.width = "4em";
+                    input.style.color = "gray";
+                    input.style.textAlign = "center";
+                    input.style.background = "#fffbe6";
+                    input.style.border = "1px solid #ccc";
+                    input.style.borderRadius = "3px";
+                    input.addEventListener("blur", () => saveFurigana(index, input.value));
+                    input.addEventListener("keydown", (e) => {
+                        if (e.key === "Enter") {
+                            input.blur();
+                        } else if (e.key === "Escape") {
+                            editingIndex = null;
+                            render();
+                        }
+                    });
+                    setTimeout(() => input.focus(), 0);
+                    rt.appendChild(input);
+                } else {
+                    rt.textContent = item.furigana || "";
+                    ruby.addEventListener("click", () => editFurigana(index));
+                }
                 ruby.appendChild(rt);
 
-                ruby.addEventListener("click", () => editFurigana(index));
                 wrapper.appendChild(ruby);
-                //} else {
-                //    wrapper.textContent = item.word;
-                //}
-
                 editor.appendChild(wrapper);
             });
         }
 
         function editFurigana(index) {
-            const item = data[index];
-            //const hasKanji = /[\u4e00-\u9faf]/.test(item.word);
-            //if (hasKanji) {
-            const newFurigana = prompt(`Enter furigana for "${item.word}":`, item.furigana);
-            if (newFurigana !== null) {
-                data[index].furigana = newFurigana;
-                render();
-                //}
-            }
+            editingIndex = index;
+            render();
+        }
+
+        function saveFurigana(index, value) {
+            data[index].furigana = value;
+            editingIndex = null;
+            render();
         }
 
         async function autoSplit() {
